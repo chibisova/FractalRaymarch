@@ -42,8 +42,16 @@ public class RaymarchCamera : SceneViewFilter
     public Transform _directionalLight;
     public float _maxDistance;
     public Color _mainColor;
-    public Vector4 _sphere1, _box1;
-    public Vector3 _modInterval;
+    [Header("Signed Distance Field")]
+    public Vector4 _sphere1;
+
+    public Vector4 _box1;
+    public float _box1round;
+    public float _boxSphereSmooth;
+    public Vector4 _sphere2;
+    public float _sphereIntersectSmooth;
+    
+    //public Vector3 _modInterval;
 
     private void OnRenderImage(RenderTexture source, RenderTexture destination)
     {
@@ -57,9 +65,13 @@ public class RaymarchCamera : SceneViewFilter
         _raymarchMaterial.SetMatrix("_CamFrustum", CamFrustum(_camera));
         _raymarchMaterial.SetMatrix("_CamToWorld", _camera.cameraToWorldMatrix);
         _raymarchMaterial.SetFloat("_maxDistance", _maxDistance);
+        _raymarchMaterial.SetFloat("_box1round", _box1round);
+        _raymarchMaterial.SetFloat("_boxSphereSmooth", _boxSphereSmooth);
+        _raymarchMaterial.SetFloat("_sphereIntersectSmooth", _sphereIntersectSmooth);
         _raymarchMaterial.SetVector("_sphere1", _sphere1);
+        _raymarchMaterial.SetVector("_sphere2", _sphere2);
         _raymarchMaterial.SetVector("_box1", _box1);
-        _raymarchMaterial.SetVector("_modInterval", _modInterval);
+        //_raymarchMaterial.SetVector("_modInterval", _modInterval);
         _raymarchMaterial.SetColor("_mainColor", _mainColor);
         
         RenderTexture.active = destination;

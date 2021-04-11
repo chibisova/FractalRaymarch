@@ -156,11 +156,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _shader: {fileID: 4800000, guid: 9e39fb0640b2441e3bd2dc4f323158a9, type: 3}
   _directionalLight: {fileID: 1582120660}
-  _maxDistance: 200
-  _mainColor: {r: 0, g: 0.58906794, b: 1, a: 0}
-  _sphere1: {x: 0, y: 0, z: 0.01, w: 2.71}
-  _box1: {x: 0, y: 0, z: 0, w: 1.81}
-  _modInterval: {x: 4, y: 4, z: 4}
+  _maxDistance: 124.7
+  _mainColor: {r: 0, g: 0.8818593, b: 1, a: 0}
+  _sphere1: {x: 0, y: 2.5, z: 0, w: 2.9}
+  _box1: {x: 0, y: 2.5, z: 0, w: 2.6}
+  _box1round: 0.1
+  _boxSphereSmooth: 1.337
+  _sphere2: {x: 0, y: 2.5, z: 0, w: 3.4}
+  _sphereIntersectSmooth: 0.11
 --- !u!81 &817997008
 AudioListener:
   m_ObjectHideFlags: 0
