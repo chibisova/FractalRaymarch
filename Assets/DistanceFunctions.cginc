@@ -31,6 +31,79 @@ float sdPlane(float3 p, float4 n)
 	return dot(p, n.xyz) + n.w;
 }
 
+// InfBox
+            // b: size of box in x/y/z
+            float sd2DBox(float2 p, float2 b)
+            {
+                float2 d = abs(p) - b;
+                return sqrt( length(max(d, 0.0))) + min(max(d.x, d.y), 0.0);
+            }
+
+            //InfCylinder
+            float sd2DCylinder(float2 p, float c)
+            {
+                return length(p) - c;
+            }
+
+
+            // Cross
+            // s: size of cross
+            float sdCross(in float3 p, float b)
+            {
+                float da = sd2DBox( p.xy, 1.1 * b);
+                float db = sd2DBox( p.yz, 1.1 * b);
+                float dc = sd2DBox( p.xz, 1.1 * b);
+                return min(da, min(db, dc));
+            }
+
+            float sdCylinderCross(in float3 p, float b)
+            {
+                float da = sd2DCylinder(p.xy, b);
+                float db = sd2DCylinder(p.yz, b);
+                float dc = sd2DCylinder(p.xz, b);
+                return min(da, min(db, dc));
+            }
+
+//Menger Cylinder
+//For the building one call:
+//return sdMergerCyl(p, float3(4,5, 6), int(1), float3(1,1,1), float4x4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1), float4x4 (1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1), float(0.2), float(2));
+float sdMergerCyl(float3 p, float3 b, int _iterations, float3 _modOffsetPos, float4x4 _iterationTransform, float4x4 _globalTransform, float _smoothRadius, float _scaleFactor)
+{
+                p = mul(_globalTransform, p);
+
+                float d = sdBox(p, b);
+
+                float s = 1.0;
+                for (int m = 0; m < _iterations; m++)
+                {
+                    p = mul(_iterationTransform,p);
+                    float px = b * _modOffsetPos.x *2/s;
+                    float py = b * _modOffsetPos.y *2/s;
+                    float pz = b * _modOffsetPos.z *2/s;
+                
+                    p.x = modf(p.x, px);
+                    p.y = modf(p.y, py);
+                    p.z = modf(p.z, pz);
+
+
+                    s *= _scaleFactor * 3;
+                    float3 r = (p) * s;
+                    float c = (sdCross(r, b - _smoothRadius) - _smoothRadius) / s;
+                    //d = max(d,-c);
+
+
+                    if (-c > d)
+                    {
+                        d = -c;
+
+                    }
+
+                }
+
+                return d;
+}
+
+
 // BOOLEAN OPERATORS //
 
 // Union

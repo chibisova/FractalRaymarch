@@ -44,12 +44,12 @@ public class RaymarchCamera : SceneViewFilter
     public Color _mainColor;
     [Header("Signed Distance Field")]
     public Vector4 _sphere1;
-
     public Vector4 _box1;
     public float _box1round;
     public float _boxSphereSmooth;
     public Vector4 _sphere2;
     public float _sphereIntersectSmooth;
+    
     
     //public Vector3 _modInterval;
 
