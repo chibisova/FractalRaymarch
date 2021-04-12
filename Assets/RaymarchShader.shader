@@ -103,16 +103,12 @@ Shader "Hidden/RaymarchShader"
             }
 
             fixed4 raymarching(float3 ro, float3 rd, float depth){
-                fixed4 result = fixed4(1, 1, 1, 1);
+                fixed4 result = fixed4(0, 0, 0, 0);
                 const int max_iteration = 164;
                 float t = 0; //distance travelled along the ray direction
 
                 for (int i = 0; i < max_iteration; i++) {
-                    if (t > _maxDistance || t >= depth){
-                        //Environment
-                    result = fixed4(rd,0);
-                    break;
-                    }
+                    
 
                     float3 p = ro + rd * t;
                     //check for hit in distancefield
@@ -122,12 +118,38 @@ Shader "Hidden/RaymarchShader"
                         float3 n = getNormal(p);
                         float light = dot(-_LightDir, n);
 
-                        result = fixed4(_mainColor.rgb * light,1);
+                        result = fixed4(_mainColor.rgb * light, 1);
                         break;
                     }
                     t += d;
                 }
                 return result;
+
+                
+
+                /*fixed4 ret = fixed4(0,0,0,0);
+
+                const int maxstep = 64;
+                float t = 0;
+                for (int i = 0; i < maxstep; ++i) {
+                    float3 p = ro + rd * t; // World space position of sample
+                    float d = distanceField(p);       // Sample of distance field (see map())
+
+                    // If the sample <= 0, we have hit something (see map()).
+                    if (d < 0.001) {
+                        // Simply return a gray color if we have hit an object
+                        float3 n = getNormal(p);
+                        ret = fixed4(dot(-_LightDir.xyz, n).rrr, 1);
+                        break;
+                    }
+
+                    // If the sample > 0, we haven't hit anything yet so we should march forward
+                    // We step forward by distance d, because d is the minimum distance possible to intersect
+                    // an object (see map()).
+                    t += d;
+                }
+
+                return ret; */
             }
 
 
