@@ -23,7 +23,7 @@ Shader "Hidden/RaymarchShader"
             uniform sampler2D _CameraDepthTexture;
             uniform float4x4 _CamFrustum, _CamToWorld;
             uniform float _maxDistance, _box1round, _boxSphereSmooth, _sphereIntersectSmooth;
-            uniform float4 _sphere1, _sphere2, _box1;
+            uniform float4 _sphere1, _sphere2, _box1, _fractal;
             uniform float3 _modInterval;
             uniform float3 _LightDir;
             uniform fixed4 _mainColor;
@@ -75,8 +75,13 @@ Shader "Hidden/RaymarchShader"
 
                 float ground = sdPlane(p, float4(0,1,0,0));
                 float boxSphere1 = BoxSphere(p);
-                
-                
+                //float fractal = sdMergerCyl(p, _fractal.xyz, int(1), float3(0,0,0), float4x4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1), float4x4 (1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1), _fractal.w, float(2));
+
+                float modX = pMod1(p.x, _modInterval.x);
+                float modY = pMod1(p.y, _modInterval.y);
+                float modZ = pMod1(p.z, _modInterval.z);
+                float fractal = sdMergerCyl(p, _fractal.xyz, int(1), float3(0,0,0), float4x4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1), float4x4 (1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1), _fractal.w, float(2));
+
                 /* this is the method to create an infinite repeat of box-sphere
                 float Sphere1 = sdSphere(p - _sphere1.xyz, _sphere1.w);
                 float Box1 = sdBox(p - _box1.xyz, _box1.www);
@@ -89,7 +94,7 @@ Shader "Hidden/RaymarchShader"
                 return opS(Sphere1, Box1);
                 */
 
-                return opU(ground, boxSphere1);
+                return fractal;
             }
 
             float3 getNormal(float3 p){
@@ -108,7 +113,11 @@ Shader "Hidden/RaymarchShader"
                 float t = 0; //distance travelled along the ray direction
 
                 for (int i = 0; i < max_iteration; i++) {
-                    
+                    /*if (t > _maxDistance || t >= depth){
+                        //Environment
+                    result = fixed4(rd,0);
+                    break;
+                    }*/
 
                     float3 p = ro + rd * t;
                     //check for hit in distancefield
@@ -124,32 +133,6 @@ Shader "Hidden/RaymarchShader"
                     t += d;
                 }
                 return result;
-
-                
-
-                /*fixed4 ret = fixed4(0,0,0,0);
-
-                const int maxstep = 64;
-                float t = 0;
-                for (int i = 0; i < maxstep; ++i) {
-                    float3 p = ro + rd * t; // World space position of sample
-                    float d = distanceField(p);       // Sample of distance field (see map())
-
-                    // If the sample <= 0, we have hit something (see map()).
-                    if (d < 0.001) {
-                        // Simply return a gray color if we have hit an object
-                        float3 n = getNormal(p);
-                        ret = fixed4(dot(-_LightDir.xyz, n).rrr, 1);
-                        break;
-                    }
-
-                    // If the sample > 0, we haven't hit anything yet so we should march forward
-                    // We step forward by distance d, because d is the minimum distance possible to intersect
-                    // an object (see map()).
-                    t += d;
-                }
-
-                return ret; */
             }
 
 

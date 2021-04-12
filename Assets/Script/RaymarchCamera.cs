@@ -49,9 +49,10 @@ public class RaymarchCamera : SceneViewFilter
     public float _boxSphereSmooth;
     public Vector4 _sphere2;
     public float _sphereIntersectSmooth;
+    public Vector4 _fractal;
     
     
-    //public Vector3 _modInterval;
+    public Vector3 _modInterval;
 
     private void OnRenderImage(RenderTexture source, RenderTexture destination)
     {
@@ -60,7 +61,7 @@ public class RaymarchCamera : SceneViewFilter
             Graphics.Blit(source, destination);
             return;
         }
-
+        
         _raymarchMaterial.SetVector("_LightDir", _directionalLight ? _directionalLight.forward : Vector3.down);
         _raymarchMaterial.SetMatrix("_CamFrustum", CamFrustum(_camera));
         _raymarchMaterial.SetMatrix("_CamToWorld", _camera.cameraToWorldMatrix);
@@ -71,7 +72,8 @@ public class RaymarchCamera : SceneViewFilter
         _raymarchMaterial.SetVector("_sphere1", _sphere1);
         _raymarchMaterial.SetVector("_sphere2", _sphere2);
         _raymarchMaterial.SetVector("_box1", _box1);
-        //_raymarchMaterial.SetVector("_modInterval", _modInterval);
+        _raymarchMaterial.SetVector("_fractal", _fractal);
+        _raymarchMaterial.SetVector("_modInterval", _modInterval);
         _raymarchMaterial.SetColor("_mainColor", _mainColor);
         
         RenderTexture.active = destination;
