@@ -75,12 +75,9 @@ Shader "Hidden/RaymarchShader"
 
                 float ground = sdPlane(p, float4(0,1,0,0));
                 float boxSphere1 = BoxSphere(p);
-                //float fractal = sdMergerCyl(p, _fractal.xyz, int(1), float3(0,0,0), float4x4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1), float4x4 (1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1), _fractal.w, float(2));
 
-                float modX = pMod1(p.x, _modInterval.x);
-                float modY = pMod1(p.y, _modInterval.y);
-                float modZ = pMod1(p.z, _modInterval.z);
-                float fractal = sdMergerCyl(p, _fractal.xyz, int(1), float3(0,0,0), float4x4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1), float4x4 (1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1), _fractal.w, float(2));
+                
+                float fractal = sdMergerCyl(p, _fractal.w, int(4), _fractal.xyz, float4x4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1), float4x4 (1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1), float(0.2), float(1));
 
                 /* this is the method to create an infinite repeat of box-sphere
                 float Sphere1 = sdSphere(p - _sphere1.xyz, _sphere1.w);
@@ -93,8 +90,13 @@ Shader "Hidden/RaymarchShader"
                 float Box1 = sdBox(p - _box1.xyz, _box1.www);
                 return opS(Sphere1, Box1);
                 */
+                float fractal2 = sdMerger(p, _fractal.w, int(4), _fractal.xyz, float4x4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1), float4x4 (1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1), float(0.2), float(2));
 
-                return fractal;
+                float sier1 = sdSierpinski(p, _fractal.x);
+
+                float bulba1 = mandelbulb(p, _fractal.w, _fractal.x, _fractal.y, float(0.7));
+
+                return sier1;
             }
 
             float3 getNormal(float3 p){
