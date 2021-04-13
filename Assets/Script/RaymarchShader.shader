@@ -90,13 +90,24 @@ Shader "Hidden/RaymarchShader"
                 float Box1 = sdBox(p - _box1.xyz, _box1.www);
                 return opS(Sphere1, Box1);
                 */
+
+                float r = abs(sin(2 * 3. * _Time.y / 2.0));
+                float d1 = sdRoundBox(fmod(p, float3(6, 6, 6)), 1, r);
+                float d2 = sdSphere(p, 3.0);
+                float d3 = floor(p - float3(0, -3, 0));
+                //return smoothMin(smoothMin(d1, d2, 1.0), d3, 1.0);
+
+
                 float fractal2 = sdMerger(p, _fractal.w, int(4), _fractal.xyz, float4x4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1), float4x4 (1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1), float(0.2), float(2));
 
-                float sier1 = sdSierpinski(p, _fractal.x);
+                float sier1 = recursiveSierpinski(p, _fractal.x);
 
                 float bulba1 = mandelbulb(p, _fractal.w, _fractal.x, _fractal.y, float(0.7));
 
-                return sier1;
+                //float tor1 = torus(twistY(p, 2.0), float2(2.0, 0.6));
+                float ifs1 = pseudo_kleinian(p);
+
+                return ifs1;
             }
 
             float3 getNormal(float3 p){
