@@ -629,3 +629,71 @@ float pseudo_knightyan(float3 p)
     float rxy=length(p.xy);
     return max(rxy-0.92784, abs(rxy*p.z) / length(p))/DEfactor;
 }
+
+/*----Tree----*/
+/*
+float c_t(vec3 pt, float x1, float x2, float x3)
+{    
+    mat4 posR = Rz(-(25.7/360.)*2.*PI);
+    mat4 negR = Rz(25.7/360.*2.*PI);
+    mat4 bendP = Ry(25.7/360.*2.*PI);
+    mat4 bendR = Ry(-25.7/360.*2.*PI);
+    
+    const int depth = 7;
+    const int branches = 3; 
+    float len = 1.5;
+    float wid = .05;
+    float widf= .9;
+    
+    float trunk = sdCylinder(pt-vec3(0.,0., 0.), (wid));
+    float d = trunk;
+    float x = sdSphere((Disp(vec3(0.,-2.5*len,0.))*vec4(pt, 1.)).xyz,1.8*len);
+    if (x > 2.*len/2.) return min(x,d);
+
+    vec3 pt_n = pt;
+      for (int i = 1; i <= depth; ++i)
+      {
+        wid *= widf;
+        float l = len*pow(.5,float(i));
+       
+        mat4 mx1 = Rz(-0.2*sin(iTime+6.2))*posR*bendP*Disp(vec3(0,-2.*l - l/2.,0));
+
+        mat4 wind = Rz(0.2*sin(iTime+6.2));
+        mat4 mx2 = wind*negR*bendP*Disp(vec3(0,-2.*l,0));
+
+        wind = Rz(0.2*sin(iTime+1.));
+        mat4 mx3 = wind*Disp(vec3(0,-4.*l,0)) ;
+        
+        vec3 pt_1 = (mx1 * vec4(pt_n,1)).xyz;
+        vec3 pt_2 = (mx2 * vec4(pt_n,1)).xyz;
+        vec3 pt_3 = (mx3 * vec4(pt_n,1)).xyz;
+          
+        // bounding sphere test
+        float z1 = sdSphere((Disp(vec3(0.,-x1*l,0.))*vec4(pt_1, 1.)).xyz,2.5*l);
+        float z2 = sdSphere((Disp(vec3(0.,-x2*l,0.))*vec4(pt_2, 1.)).xyz,2.5*l);
+        float z3 = sdSphere((Disp(vec3(0.,-x3*l,0.))*vec4(pt_3, 1.)).xyz,2.5*l);
+          
+        // potential cylinders
+        float y1= sdCappedCylinder(pt_1, vec2(wid,l));
+        float y2= sdCappedCylinder(pt_2, vec2(wid,l));
+        float y3= sdCappedCylinder(pt_3, vec2(wid,l));
+
+        // calc closest
+        float mi = min(z1, min(z2,z3));
+          
+        vec3 pt = (z1<z2) ? pt_1 : pt_2;
+        pt_n = (min(z1,z2)<z3) ? pt   : pt_3;
+
+        d = min( d, min(y1,min(y2,y3)) );
+        float epsilon = .5;
+        #ifdef DEBUG
+        epsilon = .0;
+        #endif
+        if (mi < epsilon) {continue;} 
+          //break;
+          return min(mi,d);
+     }
+   return d; 
+    
+}
+*/

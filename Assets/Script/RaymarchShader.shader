@@ -107,7 +107,7 @@ Shader "Hidden/RaymarchShader"
                 //float tor1 = torus(twistY(p, 2.0), float2(2.0, 0.6));
                 float ifs1 = pseudo_kleinian(p);
 
-                return ifs1;
+                return fractal2;
             }
 
             float3 getNormal(float3 p){
