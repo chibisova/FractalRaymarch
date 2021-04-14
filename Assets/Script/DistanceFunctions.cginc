@@ -67,6 +67,7 @@ float opIS( float d1, float d2, float k )
     return lerp( d2, d1, h ) + k*h*(1.0-h); 
 }
 
+
 // Sphere
 // s: radius
 float sdSphere(float3 p, float s)
@@ -224,7 +225,10 @@ float sdCylinderCross( in float3 p, float b )
   return min(da,min(db,dc));
 }
 
-//mergerSponge
+
+//MERGER FUNCTS FAMILY
+
+//Merger Sponge
 float2 sdMerger( in float3 p, float b, int _iterations, float3 _modOffsetPos , float4x4 _iterationTransform, float4x4 _globalTransform, float _smoothRadius, float _scaleFactor)
 {
    
@@ -255,7 +259,39 @@ float2 sdMerger( in float3 p, float b, int _iterations, float3 _modOffsetPos , f
    return d;
 }
 
-//merger piramid
+//Merrger Sponge Cylinder
+float2 sdMergerCyl( in float3 p, float b, int _iterations, float3 _modOffsetPos , float4x4 _iterationTransform, float4x4 _globalTransform, float _smoothRadius, float _scaleFactor)
+{
+   
+   p = mul(_globalTransform, float4(p,1)).xyz;
+   
+   
+   float2 d = float2(sdSphere(p,float3(b- _smoothRadius,b- _smoothRadius,b- _smoothRadius)),0)- _smoothRadius;
+
+   float s = 1.0;
+   for( int m=0; m<_iterations; m++ )
+   {
+        p = mul(_iterationTransform, float4(p,1)).xyz;
+        p.x = pMod(p.x,b*_modOffsetPos.x * 2/s);
+        p.y = pMod(p.y,b*_modOffsetPos.y * 2/s);
+        p.z = pMod(p.z,b*_modOffsetPos.z * 2/s);
+      
+        s *= _scaleFactor * 3;
+        float3 r =(p)*s; 
+        float c = (sdCylinderCross(r,b- _smoothRadius/s)- _smoothRadius)/s;
+        
+        if(-c>d.x)
+        {
+            d.x = -c;
+            d = float2( d.x, m);
+            
+        }
+   }  
+   return d;
+}
+
+//Merger Piramid
+
 float2 sdMergerPyr( in float3 p, float b, int _iterations, float3 _modOffsetPos , float4x4 _iterationTransform, float4x4 _globalTransform, float _smoothRadius, float _scaleFactor, float4x4 rotate45)
 {
    b = 2*b;
@@ -287,7 +323,7 @@ float2 sdMergerPyr( in float3 p, float b, int _iterations, float3 _modOffsetPos 
    return d;
 }
 
-// negative sphere
+//Negative Sphere
 
 float2 sdNegSphere (in float3 p, float b, int _iterations, float3 _modOffsetPos , float4x4 _iterationTransform, float4x4 _globalTransform, float _sphere1, float _scaleFactor)
 {
@@ -319,38 +355,7 @@ float2 sdNegSphere (in float3 p, float b, int _iterations, float3 _modOffsetPos 
 
 }
 
-//mergerSponge cylinder
-float2 sdMergerCyl( in float3 p, float b, int _iterations, float3 _modOffsetPos , float4x4 _iterationTransform, float4x4 _globalTransform, float _smoothRadius, float _scaleFactor)
-{
-   
-   p = mul(_globalTransform, float4(p,1)).xyz;
-   
-   
-   float2 d = float2(sdSphere(p,float3(b- _smoothRadius,b- _smoothRadius,b- _smoothRadius)),0)- _smoothRadius;
-
-   float s = 1.0;
-   for( int m=0; m<_iterations; m++ )
-   {
-        p = mul(_iterationTransform, float4(p,1)).xyz;
-        p.x = pMod(p.x,b*_modOffsetPos.x * 2/s);
-        p.y = pMod(p.y,b*_modOffsetPos.y * 2/s);
-        p.z = pMod(p.z,b*_modOffsetPos.z * 2/s);
-      
-        s *= _scaleFactor * 3;
-        float3 r =(p)*s; 
-        float c = (sdCylinderCross(r,b- _smoothRadius/s)- _smoothRadius)/s;
-        
-        if(-c>d.x)
-        {
-            d.x = -c;
-            d = float2( d.x, m);
-            
-        }
-   }  
-   return d;
-}
-
-
+//SIERPINSKI TRIENGLE FAMILY
 
 //Sierpinski triangle
 float sdSierpinski(float3 p, float psize) {
@@ -389,6 +394,8 @@ float sdSierpinski(float3 p, float psize) {
     return length(p) * pow(scale, float(-maxit)) - psize; // let the leaves be one pixel in size
 }
 
+//Recursive Sierpinski
+
 float recursiveSierpinski(float3 p, int loop)
 {
     p = fmod(p / 2, 3.0);
@@ -412,16 +419,16 @@ float recursiveSierpinski(float3 p, int loop)
     return length(p) * pow(scale, float(-n));
 }
 
-//mandelbulb
-float mandelbulb (in float3 p,float _power,float b,float _iterations,float _smoothRadius){
-    
+//MANDELBULB FAMILY
+
+//Mandelbulb
+float mandelbulb (in float3 p,float _power, float _iterations, float _smoothRadius){
     
     float3 w = p;
     float m = dot(w,w);
     float dr = 1.0;
   
     int iterations = 0;
-
 
     for (int i = 0; i < _iterations ; i++) {
         iterations = i;
@@ -444,8 +451,8 @@ float mandelbulb (in float3 p,float _power,float b,float _iterations,float _smoo
    
 }
 
-//mandelbulb2
-float mandelbulb2 (in float3 p,float _power,float b,float _iterations,float _smoothRadius){
+// Mandelbulb2
+float mandelbulb2 (in float3 p,float _power, float _iterations,float _smoothRadius){
     
     
     float3 w = p;
@@ -485,38 +492,7 @@ float mandelbulb2 (in float3 p,float _power,float b,float _iterations,float _smo
    
 }
 
-float torus(float3 pos, float2 radius)
-{
-    float2 r = float2(length(pos.xy) - radius.x, pos.z);
-    return length(r) - radius.y;
-}
-
-float3 twistY(float3 p, float power)
-{
-    float s = sin(power * p.y);
-    float c = cos(power * p.y);
-    float3x3 m = float3x3(
-          c, 0.0,  -s,
-        0.0, 1.0, 0.0,
-          s, 0.0,   c
-    );
-    return mul(m, p);
-}
-
-
-float smoothMin(float d1, float d2, float k)
-{
-    float h = exp(-k * d1) + exp(-k * d2);
-    return -log(h) / k;
-}
-
-float4 qsqr( in float4 a ) // square a quaterion
-{
-    return float4( a.x*a.x - a.y*a.y - a.z*a.z - a.w*a.w,
-                 2.0*a.x*a.y,
-                 2.0*a.x*a.z,
-                 2.0*a.x*a.w );
-}
+//OTHER FRACTAL FUNCTIONS
 
 float towerIFS(float3 z)
 {
@@ -544,7 +520,7 @@ float towerIFS(float3 z)
     return (length(z) ) * pow(FRACT_SCALE, -float(FRACT_ITER));
 }
 
-float tglad_formula(float3 z0)
+float abstFractal(float3 z0)
 {
     z0 = fmod(z0, 2.0);
 
