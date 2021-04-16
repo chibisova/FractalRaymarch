@@ -70,6 +70,7 @@ float opIS( float d1, float d2, float k )
 
 // Sphere
 // s: radius
+
 float sdSphere(float3 p, float s)
 {
 	return length(p) - s;
@@ -199,7 +200,8 @@ float sd2DBox( in float2 p, in float2 b )
 }
 
 
-//InfCylinder
+// InfCylinder
+
 float sd2DCylinder(float2 p, float c)
 {
     return length(p) - c;
@@ -610,12 +612,62 @@ float pseudo_knightyan(float3 p)
 
 /*----Tree----*/
 /*
-float c_t(vec3 pt, float x1, float x2, float x3)
+float sdCappedCylinder( float3 p, float3 h )
+{
+  p -= float3(0.,h.y, 0);
+  float2 d = abs(float2(length(p.xz),p.y)) - h;
+  return min(max(d.x,d.y),0.0) + length(max(d,0.0));
+}
+
+float4x4 Ry (float angle)
+{
+    float c = cos(angle);
+    float s = sin(angle);
+    
+return  float4x4(
+        float4(c, 0, -s, 0),
+        float4(0, 1, 0, 0),
+        float4(s, 0, c, 0),
+        float4(0, 0, 0, 1)
+); 
+}
+
+float3 rotateX(float3 p, float angle)
+{
+    float c = cos(angle);
+    float s = sin(angle);
+    return float3(p.x, c*p.y+s*p.z, -s*p.y+c*p.z);
+}
+
+float4x4 Rz (float angle)
+{
+    float c = cos(angle);
+    float s = sin(angle);
+    
+return  float4x4(
+        float4(c, s, 0, 0),
+        float4(-s, c, 0, 0),
+        float4(0, 0, 1, 0),
+        float4(0, 0, 0, 1)
+); 
+}
+
+float4x4 Disp (float3 displacement)
+{
+return  float4x4(
+        float4(1, 0, 0, 0),
+        float4(0, 1, 0, 0),
+        float4(0, 0, 1, 0),
+        float4(displacement, 1)
+); 
+}
+
+float c_t(float3 p, float x1, float x2, float x3)
 {    
-    mat4 posR = Rz(-(25.7/360.)*2.*PI);
-    mat4 negR = Rz(25.7/360.*2.*PI);
-    mat4 bendP = Ry(25.7/360.*2.*PI);
-    mat4 bendR = Ry(-25.7/360.*2.*PI);
+    float4x4 posR = Rz(-(25.7/360.)*2.*PI);
+    float4x4 negR = Rz(25.7/360.*2.*PI);
+    float4x4 bendP = Ry(25.7/360.*2.*PI);
+    float4x4 bendR = Ry(-25.7/360.*2.*PI);
     
     const int depth = 7;
     const int branches = 3; 
@@ -623,44 +675,33 @@ float c_t(vec3 pt, float x1, float x2, float x3)
     float wid = .05;
     float widf= .9;
     
-    float trunk = sdCylinder(pt-vec3(0.,0., 0.), (wid));
+    float trunk = sdCylinder(p-float3(0.,0., 0.), (wid));
     float d = trunk;
-    float x = sdSphere((Disp(vec3(0.,-2.5*len,0.))*vec4(pt, 1.)).xyz,1.8*len);
-    if (x > 2.*len/2.) return min(x,d);
 
-    vec3 pt_n = pt;
+    float3 pt_n = p;
       for (int i = 1; i <= depth; ++i)
       {
         wid *= widf;
         float l = len*pow(.5,float(i));
        
-        mat4 mx1 = Rz(-0.2*sin(iTime+6.2))*posR*bendP*Disp(vec3(0,-2.*l - l/2.,0));
+        float4x4 mx1 = Rz(-0.2*sin(_Time.y+6.2))*posR*bendP*Disp(float3(0,-2.*l - l/2.,0));
 
-        mat4 wind = Rz(0.2*sin(iTime+6.2));
-        mat4 mx2 = wind*negR*bendP*Disp(vec3(0,-2.*l,0));
+        float4x4 wind = Rz(0.2*sin(_Time.y+6.2));
+        float4x4 mx2 = wind*negR*bendP*Disp(float3(0,-2.*l,0));
 
-        wind = Rz(0.2*sin(iTime+1.));
-        mat4 mx3 = wind*Disp(vec3(0,-4.*l,0)) ;
+        wind = Rz(0.2*sin(_Time.y+1.));
+        float4x4 mx3 = wind*Disp(float3(0,-4.*l,0)) ;
         
-        vec3 pt_1 = (mx1 * vec4(pt_n,1)).xyz;
-        vec3 pt_2 = (mx2 * vec4(pt_n,1)).xyz;
-        vec3 pt_3 = (mx3 * vec4(pt_n,1)).xyz;
+        float3 pt_1 = (mx1 * float4(pt_n,1)).xyz;
+        float3 pt_2 = (mx2 * float4(pt_n,1)).xyz;
+        float3 pt_3 = (mx3 * float4(pt_n,1)).xyz;
           
-        // bounding sphere test
-        float z1 = sdSphere((Disp(vec3(0.,-x1*l,0.))*vec4(pt_1, 1.)).xyz,2.5*l);
-        float z2 = sdSphere((Disp(vec3(0.,-x2*l,0.))*vec4(pt_2, 1.)).xyz,2.5*l);
-        float z3 = sdSphere((Disp(vec3(0.,-x3*l,0.))*vec4(pt_3, 1.)).xyz,2.5*l);
-          
+  
         // potential cylinders
-        float y1= sdCappedCylinder(pt_1, vec2(wid,l));
-        float y2= sdCappedCylinder(pt_2, vec2(wid,l));
-        float y3= sdCappedCylinder(pt_3, vec2(wid,l));
+        float y1= sdCappedCylinder(pt_1, float2(wid,l));
+        float y2= sdCappedCylinder(pt_2, float2(wid,l));
+        float y3= sdCappedCylinder(pt_3, float2(wid,l));
 
-        // calc closest
-        float mi = min(z1, min(z2,z3));
-          
-        vec3 pt = (z1<z2) ? pt_1 : pt_2;
-        pt_n = (min(z1,z2)<z3) ? pt   : pt_3;
 
         d = min( d, min(y1,min(y2,y3)) );
         float epsilon = .5;
