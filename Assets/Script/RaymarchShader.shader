@@ -92,7 +92,8 @@ Shader "Hidden/RaymarchShader"
                 //mergerPyr
                 else if(_functionNum == 3){
                     //dist = sdtriangleCross(p, _GlobalScale);
-                    dist = sdMergerPyr(p,_GlobalScale, _iterations,_modOffsetPos ,_iterationTransform, _globalTransform, _smoothRadius, _scaleFactor, float4x4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1));
+                    dist = sdMergerPyr(p,_GlobalScale, _iterations,_modOffsetPos ,_iterationTransform, _globalTransform, _smoothRadius, _scaleFactor,
+                                        float4x4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1));
                 } 
                 // neg sphere
                 else if(_functionNum == 4){
@@ -106,71 +107,26 @@ Shader "Hidden/RaymarchShader"
                 else if(_functionNum == 6){
                     dist = mandelbulb(p, _power,  _iterations, _smoothRadius);
                 } 
-                // Mandelbulb2
-                else if(_functionNum == 7){
-                    dist = mandelbulb2 (p, _power,  _iterations, _smoothRadius);
-                }
                 // Tower IFS
-                else if(_functionNum == 8){
+                else if(_functionNum == 7){
                     dist = towerIFS(p);
                 }
-                // Abstract Fractal
-                else if(_functionNum == 9){
-                    dist = abstFractal(p);
+                // Modern windows
+                else if(_functionNum == 8){
+                    dist = modernWindows(p);
                 } 
-                // Hartverdrahtet 
-                else if(_functionNum == 10){
-                    dist = hartverdrahtet(p);
+                // Jungles 
+                else if(_functionNum == 9){
+                    dist = infinityJungles(p);
                 }
                 // Pseudo Kleinian
-                else if(_functionNum == 11){
+                else if(_functionNum == 10){
                     dist = pseudo_kleinian(p);
                 }
-                // Pseudo Knightyan
-                else if(_functionNum == 12){
-                    dist = pseudo_knightyan(p);
-                } 
-                //default
-                else dist = _maxDistance + 1;
-
-
-                //float ground = sdPlane(p, float4(0,1,0,0));
-                //float boxSphere1 = BoxSphere(p);
-
-                
-                //float fractal = sdMergerPyr(p, _fractal.w, int(4), _fractal.xyz, float4x4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1), float4x4 (1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1), float(0.2), float(1), float4x4 (1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1));
-
-                //float fractal3 = sdNegSphere(p, float(6.), int(4), _fractal.xyz, float4x4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1), float4x4 (1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1), _fractal.w, float(1));
-
-                /* this is the method to create an infinite repeat of box-sphere
-                float Sphere1 = sdSphere(p - _sphere1.xyz, _sphere1.w);
-                float Box1 = sdBox(p - _box1.xyz, _box1.www);
-                
-                float modX = pMod1(p.x, _modInterval.x);
-                float modY = pMod1(p.y, _modInterval.y);
-                float modZ = pMod1(p.z, _modInterval.z);
-                float Sphere1 = sdSphere(p - _sphere1.xyz, _sphere1.w);
-                float Box1 = sdBox(p - _box1.xyz, _box1.www);
-                return opS(Sphere1, Box1);
-                */
-                //float dist = sdNegSphere(p, _GlobalScale, _iterations, _modOffsetPos ,_iterationTransform, _globalTransform, _smoothRadius, _scaleFactor);
-
-                //float r = abs(sin(2 * 3. * _Time.y / 2.0));
-                //float d1 = sdRoundBox(fmod(p, float3(6, 6, 6)), 1, r);
-                //float d2 = sdSphere(p, 3.0);
-                //float d3 = floor(p - float3(0, -3, 0));
-                //return smoothMin(smoothMin(d1, d2, 1.0), d3, 1.0);
-
-
-                //float fractal2 = sdMerger(p, _fractal.w, int(4), _fractal.xyz, float4x4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1), float4x4 (1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1), float(0.2), float(2));
-
-                //float sier1 = sdSierpinski(p, _fractal.x);
-
-                //float bulba1 = mandelbulb(p, _fractal.w, _fractal.x, _fractal.y, float(0.7));
-
-                //float tor1 = torus(twistY(p, 2.0), float2(2.0, 0.6));
-                //float ifs1 = pseudo_kleinian(p);
-
+                // Lampshade pattern
+                else if(_functionNum == 11){
+                    dist = lampshadePattern(p);
+                }
                 return dist;
             }
 
@@ -221,19 +177,11 @@ Shader "Hidden/RaymarchShader"
 
                 for (int i = 0; i < max_iteration; i++) {
 
-
                     //sends out ray from the camera
                     float3 p = ro + rd * t;
 
-
                     //return distance to forcefield
                     float _forceField = sdforceField(p);
-                    /*
-                    if (t > _maxDistance || t >= depth){
-                        //Environment
-                        result = fixed4(rd,0);
-                        break;
-                    }*/
 
                     //check for hit in distancefield
                     float2 d = distanceField(p);
@@ -262,9 +210,6 @@ Shader "Hidden/RaymarchShader"
                         float ao = (1 - 2 * i/float(max_iteration)) * (1 - _aoIntensity) + _aoIntensity; // ambient occlusion
                         float3 colorLight = float3 (color * light * shadow * ao); // multiplying all values between 0 and 1 to return final color
                         colorDepth = float3 (colorLight*(_maxDistance-t)/(_maxDistance) + _skyColor.rgb*(t)/(_maxDistance)); // Background color, multiplying with distance
-                       
-                        /*float3 n = getNormal(p);
-                        float light = dot(-_LightDir, n);*/
 
                         if(_forceFieldHit == true)
                         {
@@ -280,8 +225,6 @@ Shader "Hidden/RaymarchShader"
 
                     if(_forceFieldHit == false)
                     {
-                        
-                        
                         // closer points get higher precicion to limit overstepping
 
                         if((d.x) < 10)
@@ -318,3 +261,4 @@ Shader "Hidden/RaymarchShader"
         }
     }
 }
+

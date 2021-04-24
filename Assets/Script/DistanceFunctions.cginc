@@ -294,7 +294,8 @@ float2 sdMergerCyl( in float3 p, float b, int _iterations, float3 _modOffsetPos 
 
 //Merger Piramid
 
-float2 sdMergerPyr( in float3 p, float b, int _iterations, float3 _modOffsetPos , float4x4 _iterationTransform, float4x4 _globalTransform, float _smoothRadius, float _scaleFactor, float4x4 rotate45)
+float2 sdMergerPyr( in float3 p, float b, int _iterations, float3 _modOffsetPos , float4x4 _iterationTransform,
+                    float4x4 _globalTransform, float _smoothRadius, float _scaleFactor, float4x4 rotate45)
 {
    b = 2*b;
    p = mul(_globalTransform, float4(p,1)).xyz;
@@ -453,47 +454,6 @@ float mandelbulb (in float3 p,float _power, float _iterations, float _smoothRadi
    
 }
 
-// Mandelbulb2
-float mandelbulb2 (in float3 p,float _power, float _iterations,float _smoothRadius){
-    
-    
-    float3 w = p;
-    float m = dot(w,w);
-    float dr = 1.0;
-  
-    int iterations = 0;
-
-
-    for (int i = 0; i < _iterations ; i++) {
-        iterations = i;
-       
-        float m2 = m*m;
-        float m4 = m2*m2;
-        dr = _power*sqrt(m4*m2*m)*dr + 1.0;
-        
-        float x = w.x; float x2 = x*x; float x4 = x2*x2;
-        float y = w.y; float y2 = y*y; float y4 = y2*y2;
-        float z = w.z; float z2 = z*z; float z4 = z2*z2;
-
-        float k3 = x2 + z2;
-        float k2 = 1/sqrt( k3*k3*k3*k3*k3*k3*k3 );
-        float k1 = x4 + y4 + z4 - 6.0*y2*z2 - 6.0*x2*y2 + 2.0*z2*x2;
-        float k4 = x2 - y2 + z2;
-
-        w.x =  64.0*x*y*z*(x2-z2)*k4*(x4-6.0*x2*z2+z4)*k1*k2;
-        w.y = -16.0*y2*k3*k4*k4 + k1*k1;
-        w.z = -8.0*y*k4*(x4*x4 - 28.0*x4*x2*z2 + 70.0*x4*z4 - 28.0*x2*z2*z4 + z4*z4)*k1*k2;
-        
-
-        m = dot(w,w);
-        if( m > 256.0 )
-            break;
-    }
-    float dst = 0.25*log(m)* sqrt(m)/dr;
-    return float2(dst*_smoothRadius, iterations);
-   
-}
-
 //OTHER FRACTAL FUNCTIONS
 
 float towerIFS(float3 z)
@@ -522,7 +482,7 @@ float towerIFS(float3 z)
     return (length(z) ) * pow(FRACT_SCALE, -float(FRACT_ITER));
 }
 
-float abstFractal(float3 z0)
+float modernWindows(float3 z0)
 {
     z0 = fmod(z0, 2.0);
 
@@ -538,7 +498,7 @@ float abstFractal(float3 z0)
     return dS;
 }
 
-float hartverdrahtet(float3 f)
+float infinityJungles(float3 f)
 {
     float3 cs=float3(.808,.808,1.167);
     float fs=1.;
@@ -596,7 +556,7 @@ float pseudo_kleinian(float3 p)
     return r;
 }
 
-float pseudo_knightyan(float3 p)
+float lampshadePattern(float3 p)
 {
     float3 CSize = float3(0.63248,0.78632,0.875);
     float DEfactor=1.;
@@ -612,7 +572,7 @@ float pseudo_knightyan(float3 p)
 
 /*----Tree----*/
 /*
-float sdCappedCylinder( float3 p, float3 h )
+float sdCappedCylinder( float3 p, float2 h )
 {
   p -= float3(0.,h.y, 0);
   float2 d = abs(float2(length(p.xz),p.y)) - h;
@@ -632,12 +592,6 @@ return  float4x4(
 ); 
 }
 
-float3 rotateX(float3 p, float angle)
-{
-    float c = cos(angle);
-    float s = sin(angle);
-    return float3(p.x, c*p.y+s*p.z, -s*p.y+c*p.z);
-}
 
 float4x4 Rz (float angle)
 {
@@ -692,27 +646,53 @@ float c_t(float3 p, float x1, float x2, float x3)
         wind = Rz(0.2*sin(_Time.y+1.));
         float4x4 mx3 = wind*Disp(float3(0,-4.*l,0)) ;
         
-        float3 pt_1 = (mx1 * float4(pt_n,1)).xyz;
-        float3 pt_2 = (mx2 * float4(pt_n,1)).xyz;
-        float3 pt_3 = (mx3 * float4(pt_n,1)).xyz;
+        float3 pt_1 = mul(mx1, float4(pt_n,1)).xyz;
+        float3 pt_2 = mul(mx2, float4(pt_n,1)).xyz;
+        float3 pt_3 = mul(mx3, float4(pt_n,1)).xyz;
           
-  
         // potential cylinders
         float y1= sdCappedCylinder(pt_1, float2(wid,l));
         float y2= sdCappedCylinder(pt_2, float2(wid,l));
         float y3= sdCappedCylinder(pt_3, float2(wid,l));
-
 
         d = min( d, min(y1,min(y2,y3)) );
         float epsilon = .5;
         #ifdef DEBUG
         epsilon = .0;
         #endif
-        if (mi < epsilon) {continue;} 
-          //break;
-          return min(mi,d);
      }
    return d; 
     
+}
+
+float2x2 ro (float a) {
+	float s = sin(a), c = cos(a);
+    return float2x2(c,-s,s,c);
+}
+
+float map (float3 p) {
+    float3 light;
+    float l = length(p-light)-1e-2;
+    l = min(l,abs(p.y+0.4)-1e-2);
+    l = min(l,abs(p.z-0.4)-1e-2);
+    l = min(l,abs(p.x-0.7)-1e-2);
+    p.y += 0.4;
+    p.z += 0.1;
+    p.zx = mul(p.zx, ro(.5*_Time.y));
+    float2 rl = float2(0.02,.25+ 0.01*sin(PI*4.*_Time.y));
+    for (int i = 1; i < 4; i++) {
+        
+        l = min(l,log(rl.x));
+    	p.y -= rl.y;
+        //p.xy *= ro(0.2*sin(3.1*_Time.y+float(i))+sin(0.222*_Time.y)*(-0.1*sin(0.4*pi*_Time.y)+sin(0.543*_Time.y)/max(float(i),2.)));
+        p.x = abs(p.x);
+        p.xy *= ro(0.6 + mul(mul(0.4, sin(_Time.y)), sin(0.871*_Time.y))+ mul(mul(0.05,float(i)),sin(2.*_Time.y)));
+        //p.zx *= ro(0.5*pi+0.2*sin(0.5278*_Time.y)+0.8*float(i)*(sin(0.1*_Time.y)*(sin(0.1*pi*_Time.y)+sin(0.333*_Time.y)+0.2*sin(1.292*_Time.y))));
+        
+        rl *= (.7+0.015*float(i)*(sin(_Time.y)+0.1*sin(4.*PI*_Time.y)));
+        
+        l=min(l,length(p)-0.15*sqrt(rl.x));
+    }
+	return l;
 }
 */

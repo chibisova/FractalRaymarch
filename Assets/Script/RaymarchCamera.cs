@@ -66,12 +66,12 @@ public class RaymarchCamera : SceneViewFilter
     public bool _drawNegativeSphere;
     public bool _drawSierpinskiTriangle;
     public bool _drawMandelbulb;
-    public bool _drawMandelbulb2;
     public bool _drawTowerIFS;
     public bool _drawAbstractFractal;
     public bool _drawHartverdrahtet;
     public bool _drawPseudoKleinia;
     public bool _drawPseudoKnightyan;
+    public bool _drawTree;
     
     [Header ("Fractal Transform")]
     public int _iterations;
@@ -125,33 +125,31 @@ public class RaymarchCamera : SceneViewFilter
             _functionNum = 5;
             _raymarchMaterial.SetFloat("_scaleFactor", _scaleFactor);
         }
-        else if (_drawMandelbulb == true || _drawMandelbulb2 == true)
-        {            
-            if (_drawMandelbulb) _functionNum = 6;
-            if (_drawMandelbulb2) _functionNum = 7;
-            
+        else if (_drawMandelbulb == true)
+        {
+            _functionNum = 6;
             _raymarchMaterial.SetFloat("_smoothRadius", _smoothRadius);
             
         }
         else if (_drawTowerIFS == true)
         {
-            _functionNum = 8;
+            _functionNum = 7;
         }
         else if (_drawAbstractFractal == true)
         {
-            _functionNum = 9;
+            _functionNum = 8;
         }
         else if (_drawHartverdrahtet == true)
         {
-            _functionNum = 10;
+            _functionNum = 9;
         }
         else if (_drawPseudoKleinia == true)
         {
-            _functionNum = 11;
+            _functionNum = 10;
         }
         else if (_drawPseudoKnightyan == true)
         {
-            _functionNum = 12;
+            _functionNum = 11;
         }
         
         
