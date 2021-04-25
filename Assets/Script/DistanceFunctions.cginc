@@ -570,6 +570,76 @@ float lampshadePattern(float3 p)
     return max(rxy-0.92784, abs(rxy*p.z) / length(p))/DEfactor;
 }
 
+
+float rand(float2 p){
+
+    float2 p2 = sin(dot(p,float2(12.9898,78.233))) * 43758.5453;
+    return p2-floor(p2);
+}
+float mix (float x, float y, float a){
+
+    return x*(1-a) + y*a;
+}
+
+float noise2f( in float2 p )
+{
+	float2 ip = float2(floor(p));
+	float2 u = p-floor(p);
+	u = u*u*(3.0-2.0*u);
+	
+	float res = mix(
+		mix(rand(ip),  rand(ip+float2(1.0,0.0)), u.x),
+		mix(rand(ip+float2(0.0,1.0)),rand(ip+float2(1.0,1.0)),u.x),
+		u.y)
+	;
+	return res*res;
+
+}
+
+
+float map(float3 p, float4 z )
+{
+	//return dot(p, z.xyz) + z.w + 0.1f*sin(10.0f*p.z)*cos(10.0f*p.x);
+
+    /*
+    int i;
+    p.x -= 1.5f;
+    for( i=0; i<20; i++ )
+    {
+    float nx = p.z*p.z-p.x*p.x  - 0.745f;
+    float nz = 2.0f*p.z*p.x + 0.186f;
+    if( nx*nx+nz*nz>4.0f ) break;
+    p.z = nx;
+    p.x = nz; }
+    return dot(p, z.xyz) + z.w - sqrt(sqrt(sqrt(i*0.001f)));
+    */
+
+    float f;
+    f = 0.5000000f*(dot(p, z.xyz) + z.w)*noise2f(p);
+    f = 0.5f+0.5f*f;
+    f = f*f*(3.0f-2.0f*f);
+    f = f*f*(3.0f-2.0f*f);
+    f = 2.5*(dot(p, z.xyz) + z.w) + 1.5f*f;
+    return f;
+
+}
+
+
+float terrain3SDF (float3 p, float4 t){
+    float x=p.x;
+    float  z=p.z;
+    float f;
+    f = 0.5000000f*noise2f(1.0f*p.xz);
+    f += 0.2500000f*noise2f(2.0f*p.xz);
+    f += 0.1250000f*noise2f(4.0f*p.xz);
+    f += 0.0625000f*noise2f(8.0f*p.xz);
+    f = 0.5f+0.5f*f;
+    f = f*f*(3.0f-2.0f*f);
+    f = f*f*(3.0f-2.0f*f);
+    f = 2.5*(dot(p, t.xyz) + t.w) + 1.5f*f;
+    return f;
+}
+
 /*----Tree----*/
 /*
 float sdCappedCylinder( float3 p, float2 h )

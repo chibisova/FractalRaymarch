@@ -125,7 +125,7 @@ Shader "Hidden/RaymarchShader"
                 }
                 // Lampshade pattern
                 else if(_functionNum == 11){
-                    dist = lampshadePattern(p);
+                    dist = terrain3SDF(p, float4(0,1,0,0));
                 }
                 return dist;
             }

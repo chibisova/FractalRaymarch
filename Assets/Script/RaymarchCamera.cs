@@ -71,7 +71,6 @@ public class RaymarchCamera : SceneViewFilter
     public bool _drawHartverdrahtet;
     public bool _drawPseudoKleinia;
     public bool _drawPseudoKnightyan;
-    public bool _drawTree;
     
     [Header ("Fractal Transform")]
     public int _iterations;

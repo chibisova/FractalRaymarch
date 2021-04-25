@@ -167,7 +167,7 @@ MonoBehaviour:
   _lightIntensity: 0.65
   _shadowIntensity: 0.34
   _aoIntensity: 0.09
-  _mainColor: {r: 1, g: 0.13679248, b: 0.7695325, a: 1}
+  _mainColor: {r: 0.4326449, g: 0.6226415, b: 0.26139194, a: 1}
   _secColor: {r: 0.74509805, g: 0.28366536, b: 0.031372547, a: 0}
   _skyColor: {r: 0.105882324, g: 0.7338148, b: 0.8392157, a: 0}
   _forceFieldColor: {r: 0.15294118, g: 0.7646433, b: 0.8392157, a: 0}
@@ -178,7 +178,6 @@ MonoBehaviour:
   _drawNegativeSphere: 0
   _drawSierpinskiTriangle: 0
   _drawMandelbulb: 0
-  _drawMandelbulb2: 0
   _drawTowerIFS: 0
   _drawAbstractFractal: 0
   _drawHartverdrahtet: 0
@@ -246,7 +245,7 @@ MonoBehaviour:
     e31: 0
     e32: 0
     e33: 1
-  _functionNum: 12
+  _functionNum: 11
 --- !u!81 &521474630
 AudioListener:
   m_ObjectHideFlags: 0
