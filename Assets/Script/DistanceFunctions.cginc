@@ -597,22 +597,11 @@ float noise2f( in float2 p )
 }
 
 
+
+
 float map(float3 p, float4 z )
 {
 	//return dot(p, z.xyz) + z.w + 0.1f*sin(10.0f*p.z)*cos(10.0f*p.x);
-
-    /*
-    int i;
-    p.x -= 1.5f;
-    for( i=0; i<20; i++ )
-    {
-    float nx = p.z*p.z-p.x*p.x  - 0.745f;
-    float nz = 2.0f*p.z*p.x + 0.186f;
-    if( nx*nx+nz*nz>4.0f ) break;
-    p.z = nx;
-    p.x = nz; }
-    return dot(p, z.xyz) + z.w - sqrt(sqrt(sqrt(i*0.001f)));
-    */
 
     float f;
     f = 0.5000000f*(dot(p, z.xyz) + z.w)*noise2f(p);
@@ -625,7 +614,7 @@ float map(float3 p, float4 z )
 }
 
 
-float terrain3SDF (float3 p, float4 t){
+float terrain3SDF (float3 p, float4 t, int iter){
     float x=p.x;
     float  z=p.z;
     float f;
@@ -633,15 +622,21 @@ float terrain3SDF (float3 p, float4 t){
     f += 0.2500000f*noise2f(2.0f*p.xz);
     f += 0.1250000f*noise2f(4.0f*p.xz);
     f += 0.0625000f*noise2f(8.0f*p.xz);
+    f += 0.0312500f*noise2f(16.0f*p.xz);
+    f += 0.0156250f*noise2f(32.0f*p.xz);
+    f += 0.0078125f*noise2f(64.0f*p.xz);
     f = 0.5f+0.5f*f;
     f = f*f*(3.0f-2.0f*f);
-    f = f*f*(3.0f-2.0f*f);
+
+    for (int i = 0; i < iter; i++){
+        f = f*f*(3.0f-2.0f*f);
+    }
     f = 2.5*(dot(p, t.xyz) + t.w) + 1.5f*f;
     return f;
 }
 
 /*----Tree----*/
-/*
+
 float sdCappedCylinder( float3 p, float2 h )
 {
   p -= float3(0.,h.y, 0);
@@ -649,34 +644,34 @@ float sdCappedCylinder( float3 p, float2 h )
   return min(max(d.x,d.y),0.0) + length(max(d,0.0));
 }
 
-float4x4 Ry (float angle)
+float4x4 Ry (float3 p, float angle)
 {
     float c = cos(angle);
     float s = sin(angle);
     
 return  float4x4(
-        float4(c, 0, -s, 0),
-        float4(0, 1, 0, 0),
-        float4(s, 0, c, 0),
+        float4(c*p.z, 0, -s*p.x, 0),
+        float4(0, p.y, 0, 0),
+        float4(s*p.z, 0, c*p.x, 0),
         float4(0, 0, 0, 1)
 ); 
 }
 
 
-float4x4 Rz (float angle)
+float4x4 Rz (float3 p,float angle)
 {
     float c = cos(angle);
     float s = sin(angle);
     
 return  float4x4(
-        float4(c, s, 0, 0),
-        float4(-s, c, 0, 0),
-        float4(0, 0, 1, 0),
+        float4(c*p.z, s*p.y, 0, 0),
+        float4(-s*p.z, c*p.y, 0, 0),
+        float4(0, 0, p.x, 0),
         float4(0, 0, 0, 1)
-); 
+);
 }
 
-float4x4 Disp (float3 displacement)
+float4x4 Disp (float3 p, float3 displacement)
 {
 return  float4x4(
         float4(1, 0, 0, 0),
@@ -686,12 +681,13 @@ return  float4x4(
 ); 
 }
 
+
 float c_t(float3 p, float x1, float x2, float x3)
 {    
-    float4x4 posR = Rz(-(25.7/360.)*2.*PI);
-    float4x4 negR = Rz(25.7/360.*2.*PI);
-    float4x4 bendP = Ry(25.7/360.*2.*PI);
-    float4x4 bendR = Ry(-25.7/360.*2.*PI);
+    float4x4 posR = Rz(p, -(25.7/360.)*2.*PI);
+    float4x4 negR = Rz(p, 25.7/360.*2.*PI);
+    float4x4 bendP = Ry(p, 25.7/360.*2.*PI);
+    float4x4 bendR = Ry(p, -25.7/360.*2.*PI);
     
     const int depth = 7;
     const int branches = 3; 
@@ -699,70 +695,54 @@ float c_t(float3 p, float x1, float x2, float x3)
     float wid = .05;
     float widf= .9;
     
-    float trunk = sdCylinder(p-float3(0.,0., 0.), (wid));
+    float trunk = sdCappedCylinder(p-float3(0.,0., 0.), float2(wid, len));
     float d = trunk;
+    float x = sdSphere(mul(Disp(p, float3(0.,-2.5*len,0.)),float4(p, 1.)).xyz,1.8*len);
+    if (x > 2.*len/2.) return min(x,d);
 
     float3 pt_n = p;
-      for (int i = 1; i <= depth; ++i)
+    for (int i = 1; i <= depth; ++i)
       {
         wid *= widf;
         float l = len*pow(.5,float(i));
        
-        float4x4 mx1 = Rz(-0.2*sin(_Time.y+6.2))*posR*bendP*Disp(float3(0,-2.*l - l/2.,0));
+        float4x4 mx1 = Rz(p, -0.2*sin(_Time.y+6.2))*posR*bendP*Disp(p, float3(0,-2.*l - l/2.,0));
 
-        float4x4 wind = Rz(0.2*sin(_Time.y+6.2));
-        float4x4 mx2 = wind*negR*bendP*Disp(float3(0,-2.*l,0));
+        float4x4 wind = Rz(p, 0.2*sin(_Time.y+6.2));
+        float4x4 mx2 = wind*negR*bendP*Disp(p, float3(0,-2.*l,0));
 
-        wind = Rz(0.2*sin(_Time.y+1.));
-        float4x4 mx3 = wind*Disp(float3(0,-4.*l,0)) ;
+        wind = Rz(p, 0.2*sin(_Time.y+1.));
+        float4x4 mx3 = wind*Disp(p,float3(0,-4.*l,0)) ;
         
         float3 pt_1 = mul(mx1, float4(pt_n,1)).xyz;
         float3 pt_2 = mul(mx2, float4(pt_n,1)).xyz;
         float3 pt_3 = mul(mx3, float4(pt_n,1)).xyz;
-          
+
+        // bounding sphere test
+        float z1 = sdSphere(mul(Disp(p,float3(0.,-x1*l,0.)),float4(pt_1, 1.)).xyz,2.5*l);
+        float z2 = sdSphere(mul(Disp(p,float3(0.,-x2*l,0.)),float4(pt_2, 1.)).xyz,2.5*l);
+        float z3 = sdSphere(mul(Disp(p,float3(0.,-x3*l,0.)),float4(pt_3, 1.)).xyz,2.5*l);
+
         // potential cylinders
         float y1= sdCappedCylinder(pt_1, float2(wid,l));
         float y2= sdCappedCylinder(pt_2, float2(wid,l));
         float y3= sdCappedCylinder(pt_3, float2(wid,l));
+
+        // calc closest
+        float mi = min(z1, min(z2,z3));
+
+        float3 pt = (z1<z2) ? pt_1 : pt_2;
+        pt_n = (min(z1,z2)<z3) ? pt   : pt_3;
 
         d = min( d, min(y1,min(y2,y3)) );
         float epsilon = .5;
         #ifdef DEBUG
         epsilon = .0;
         #endif
+        if (mi < epsilon) {continue;} 
+          //break;
+          return min(mi,d);
      }
    return d; 
     
 }
-
-float2x2 ro (float a) {
-	float s = sin(a), c = cos(a);
-    return float2x2(c,-s,s,c);
-}
-
-float map (float3 p) {
-    float3 light;
-    float l = length(p-light)-1e-2;
-    l = min(l,abs(p.y+0.4)-1e-2);
-    l = min(l,abs(p.z-0.4)-1e-2);
-    l = min(l,abs(p.x-0.7)-1e-2);
-    p.y += 0.4;
-    p.z += 0.1;
-    p.zx = mul(p.zx, ro(.5*_Time.y));
-    float2 rl = float2(0.02,.25+ 0.01*sin(PI*4.*_Time.y));
-    for (int i = 1; i < 4; i++) {
-        
-        l = min(l,log(rl.x));
-    	p.y -= rl.y;
-        //p.xy *= ro(0.2*sin(3.1*_Time.y+float(i))+sin(0.222*_Time.y)*(-0.1*sin(0.4*pi*_Time.y)+sin(0.543*_Time.y)/max(float(i),2.)));
-        p.x = abs(p.x);
-        p.xy *= ro(0.6 + mul(mul(0.4, sin(_Time.y)), sin(0.871*_Time.y))+ mul(mul(0.05,float(i)),sin(2.*_Time.y)));
-        //p.zx *= ro(0.5*pi+0.2*sin(0.5278*_Time.y)+0.8*float(i)*(sin(0.1*_Time.y)*(sin(0.1*pi*_Time.y)+sin(0.333*_Time.y)+0.2*sin(1.292*_Time.y))));
-        
-        rl *= (.7+0.015*float(i)*(sin(_Time.y)+0.1*sin(4.*PI*_Time.y)));
-        
-        l=min(l,length(p)-0.15*sqrt(rl.x));
-    }
-	return l;
-}
-*/

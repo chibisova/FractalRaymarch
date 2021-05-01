@@ -123,9 +123,13 @@ Shader "Hidden/RaymarchShader"
                 else if(_functionNum == 10){
                     dist = pseudo_kleinian(p);
                 }
-                // Lampshade pattern
+                // Landscape 
                 else if(_functionNum == 11){
-                    dist = terrain3SDF(p, float4(0,1,0,0));
+                    dist = terrain3SDF(p, float4(0,1,0,0), _iterations);
+                }
+                // Tree 
+                else if(_functionNum == 12){
+                    dist = c_t(p, _iterations, _power, _scaleFactor);
                 }
                 return dist;
             }

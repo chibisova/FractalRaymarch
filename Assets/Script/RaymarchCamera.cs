@@ -70,8 +70,9 @@ public class RaymarchCamera : SceneViewFilter
     public bool _drawAbstractFractal;
     public bool _drawHartverdrahtet;
     public bool _drawPseudoKleinia;
-    public bool _drawPseudoKnightyan;
-    
+    public bool _drawLandscape;
+    public bool _drawTree;
+
     [Header ("Fractal Transform")]
     public int _iterations;
     public float _power;
@@ -146,9 +147,13 @@ public class RaymarchCamera : SceneViewFilter
         {
             _functionNum = 10;
         }
-        else if (_drawPseudoKnightyan == true)
+        else if (_drawLandscape == true)
         {
             _functionNum = 11;
+        }
+        else if (_drawTree == true)
+        {
+            _functionNum = 12;
         }
         
         
@@ -234,4 +239,5 @@ public class RaymarchCamera : SceneViewFilter
         return frustum;
 
     }
+    
 }
